@@ -1,26 +1,35 @@
 #include <iostream>
-#include "utmatrix.h"
+#include "tmatrix.h"
 
-int main() {
-    std::cout << "Sample matrix operations\n";
+int main()
+{
+    using std::cout;
+    using std::endl;
 
-    TMatrix<int> A(3), B(3);
+    TDynamicMatrix<int> A(4), B(4);
 
-    A[0][0]=1; A[0][1]=2; A[0][2]=3;
-    A[1][1]=4; A[1][2]=5;
-    A[2][2]=6;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            A[i][j] = i + j;
+            B[i][j] = (i == j) ? 1 : 0;
+        }
+    }
 
-    B[0][0]=10; B[0][1]=20; B[0][2]=30;
-    B[1][1]=40; B[1][2]=50;
-    B[2][2]=60;
+    TDynamicMatrix<int> C = A;
+    cout << "C == A ? " << (C == A) << endl;
 
-    auto C = A + B;
+    TDynamicMatrix<int> D = A + B;
+    cout << "D[2][3] = " << D[2][3] << endl;
 
-    std::cout << "C[0][2] = " << C[0][2] << "\n";
+    TDynamicMatrix<int> E = D - A;
+    cout << "E[1][1] = " << E[1][1] << endl;
 
-    auto D = C - A;
-
-    std::cout << "D[1][2] = " << D[1][2] << "\n";
+    TDynamicVector<int> v(4);
+    for (int i = 0; i < 4; ++i) v[i] = i + 1;
+    TDynamicVector<int> r = A * v;
+    cout << "A * v =";
+    for (size_t i = 0; i < r.size(); ++i) cout << ' ' << r[static_cast<int>(i)];
+    cout << endl;
 
     return 0;
 }

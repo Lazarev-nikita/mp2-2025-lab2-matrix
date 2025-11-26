@@ -211,14 +211,27 @@ class TDynamicMatrix : private TDynamicVector<TDynamicVector<T>>
 public:
     TDynamicMatrix(size_t s = 1) : Base(s)
     {
-        if (size > MAX_MATRIX_LEN)
+        if (s == 0)
+            throw out_of_range("Matrix size must be greater than 0");
+        if (s > MAX_MATRIX_LEN)
             throw out_of_range("Matrix size exceeds maximum limit");
         
         for (size_t i = 0; i < size; ++i)
             pData[i] = TDynamicVector<T>(size);
     }
 
-    using Base::operator[];
+    TDynamicVector<T>& operator[](size_t ind)
+    {
+        if (ind >= size) throw out_of_range("Matrix index out of range");
+        return pData[ind];
+    }
+
+    const TDynamicVector<T>& operator[](size_t ind) const
+    {
+        if (ind >= size) throw out_of_range("Matrix index out of range");
+        return pData[ind];
+    }
+
     size_t get_size() const { return size; } 
 
     bool operator==(const TDynamicMatrix& m) const noexcept

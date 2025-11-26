@@ -1,30 +1,26 @@
-﻿// ННГУ, ИИТММ, Курс "Алгоритмы и структуры данных"
-//
-// Copyright (c) Сысоев А.В.
-//
-// Тестирование матриц
-
 #include <iostream>
-#include "tmatrix.h"
-//---------------------------------------------------------------------------
+#include "utmatrix.h"
 
-void main()
-{
-  TDynamicMatrix<int> a(5), b(5), c(5);
-  int i, j;
+int main() {
+    std::cout << "Sample matrix operations\n";
 
-  setlocale(LC_ALL, "Russian");
-  cout << "Тестирование класс работы с матрицами"
-    << endl;
-  for (i = 0; i < 5; i++)
-    for (j = i; j < 5; j++ )
-    {
-      a[i][j] =  i * 10 + j;
-      b[i][j] = (i * 10 + j) * 100;
-    }
-  c = a + b;
-  cout << "Matrix a = " << endl << a << endl;
-  cout << "Matrix b = " << endl << b << endl;
-  cout << "Matrix c = a + b" << endl << c << endl;
+    TMatrix<int> A(3), B(3);
+
+    A[0][0]=1; A[0][1]=2; A[0][2]=3;
+    A[1][1]=4; A[1][2]=5;
+    A[2][2]=6;
+
+    B[0][0]=10; B[0][1]=20; B[0][2]=30;
+    B[1][1]=40; B[1][2]=50;
+    B[2][2]=60;
+
+    auto C = A + B;
+
+    std::cout << "C[0][2] = " << C[0][2] << "\n";
+
+    auto D = C - A;
+
+    std::cout << "D[1][2] = " << D[1][2] << "\n";
+
+    return 0;
 }
-//---------------------------------------------------------------------------

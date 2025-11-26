@@ -3,33 +3,42 @@
 
 int main()
 {
-    using std::cout;
-    using std::endl;
+    setlocale(LC_ALL, "");
 
-    TDynamicMatrix<int> A(4), B(4);
+    try {
+        int n;
+        std::cout << "Enter matrix size: ";
+        std::cin >> n;
 
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            A[i][j] = i + j;
-            B[i][j] = (i == j) ? 1 : 0;
+        TDynamicMatrix<int> A(n), B(n);
+
+        std::cout << "Generating random matrix A..." << std::endl;
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                A[i][j] = i * 10 + j;
+
+        std::cout << "Matrix A:" << std::endl << A << std::endl;
+
+        std::cout << "Generating matrix B (Identity)..." << std::endl;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                B[i][j] = (i == j) ? 1 : 0;
+            }
+        }
+        std::cout << "Matrix B:" << std::endl << B << std::endl;
+
+        TDynamicMatrix<int> C = A * B;
+        std::cout << "Result of A * B:" << std::endl << C << std::endl;
+
+        if (C == A) {
+            std::cout << "Multiplication checked: Correct (A * E = A)." << std::endl;
+        } else {
+            std::cout << "Multiplication checked: Incorrect." << std::endl;
         }
     }
-
-    TDynamicMatrix<int> C = A;
-    cout << "C == A ? " << (C == A) << endl;
-
-    TDynamicMatrix<int> D = A + B;
-    cout << "D[2][3] = " << D[2][3] << endl;
-
-    TDynamicMatrix<int> E = D - A;
-    cout << "E[1][1] = " << E[1][1] << endl;
-
-    TDynamicVector<int> v(4);
-    for (int i = 0; i < 4; ++i) v[i] = i + 1;
-    TDynamicVector<int> r = A * v;
-    cout << "A * v =";
-    for (size_t i = 0; i < r.size(); ++i) cout << ' ' << r[static_cast<int>(i)];
-    cout << endl;
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
 
     return 0;
 }

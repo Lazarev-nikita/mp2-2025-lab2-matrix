@@ -1,38 +1,117 @@
-#include "gtest/gtest.h"
-#include "utmatrix.h"
+#include "tmatrix.h"
+#include <gtest.h>
 
-TEST(TMatrix, can_create_matrix_with_positive_size) {
-    EXPECT_NO_THROW(TMatrix<int> m(4));
+TEST(DynamicMatrix, CanCreateMatrixWithPositiveSize)
+{
+    ASSERT_NO_THROW(TDynamicMatrix<int> m(7));
 }
 
-TEST(TMatrix, throws_when_create_with_negative_size) {
-    EXPECT_THROW(TMatrix<int> m(-1), std::invalid_argument);
+TEST(DynamicMatrix, ThrowsExceptionOnTooLargeSize)
+{
+    ASSERT_ANY_THROW(TDynamicMatrix<int> m(MAX_MATRIX_LEN + 10));
 }
 
-TEST(TMatrix, can_copy_matrix) {
-    TMatrix<int> m1(3);
+TEST(DynamicMatrix, ThrowsExceptionOnNegativeSize)
+{
+    ASSERT_ANY_THROW(TDynamicMatrix<int> m(static_cast<size_t>(-5)));
+}
 
-    m1[0][0]=1; m1[0][1]=2; m1[0][2]=3;
-    m1[1][1]=4; m1[1][2]=5;
-    m1[2][2]=6;
+TEST(DynamicMatrix, CanCopyMatrix)
+{
+    TDynamicMatrix<int> src(5);
+    ASSERT_NO_THROW(TDynamicMatrix<int> copy(src));
+}
 
-    TMatrix<int> m2(m1);
+TEST(DynamicMatrix, CopyIsEqualToSource)
+{
+    TDynamicMatrix<int> m1(5);
+    for (int i = 0; i < 5; i++)
+        for (int j = 0; j < 5; j++)
+            m1[i][j] = i * j;
 
+    TDynamicMatrix<int> m2(m1);
     EXPECT_EQ(m1, m2);
 }
 
-TEST(TMatrix, addition_and_subtraction) {
-    TMatrix<int> a(3), b(3);
+TEST(DynamicMatrix, CopyHasSeparateMemory)
+{
+    TDynamicMatrix<int> m1(3);
+    TDynamicMatrix<int> m2(m1);
+    
+    m1[0][0] = 100;
+    m2[0][0] = 200;
 
-    for(int i=0;i<3;i++)
-        for(int j=i;j<3;j++) {
-            a[i][j]=i+j;
-            b[i][j]=1;
-        }
+    EXPECT_NE(m1[0][0], m2[0][0]);
+}
 
-    auto c = a + b;
-    auto d = a - b;
+TEST(DynamicMatrix, GetSizeWorksCorrectly)
+{
+    TDynamicMatrix<int> m(12);
+    EXPECT_EQ(12, m.get_size());
+}
 
-    EXPECT_EQ(c[0][2], a[0][2] + 1);
-    EXPECT_EQ(d[2][2], a[2][2] - 1);
+TEST(DynamicMatrix, CanAccessElements)
+{
+    TDynamicMatrix<int> m(4);
+    m[1][2] = 55;
+    EXPECT_EQ(55, m[1][2]);
+}
+
+TEST(DynamicMatrix, ThrowsOnIndexOutOfRange)
+{
+    TDynamicMatrix<int> m(5);
+    ASSERT_ANY_THROW(m[6][0] = 0); 
+}
+
+TEST(DynamicMatrix, SelfAssignmentIsValid)
+{
+    TDynamicMatrix<int> m(5);
+    ASSERT_NO_THROW(m = m);
+}
+
+TEST(DynamicMatrix, CanAssignMatrices)
+{
+    TDynamicMatrix<int> m1(5);
+    TDynamicMatrix<int> m2(3);
+    m1[0][0] = 10;
+    
+    m2 = m1;
+    EXPECT_EQ(m2[0][0], 10);
+    EXPECT_EQ(m2.get_size(), 5);
+}
+
+TEST(DynamicMatrix, MatricesComparison)
+{
+    TDynamicMatrix<int> m1(3);
+    TDynamicMatrix<int> m2(3);
+    
+    EXPECT_TRUE(m1 == m2);
+    
+    m1[0][0] = 1;
+    EXPECT_FALSE(m1 == m2);
+    EXPECT_TRUE(m1 != m2);
+}
+
+TEST(DynamicMatrix, MatrixAddition)
+{
+    TDynamicMatrix<int> m1(3), m2(3);
+    m1[0][0] = 1; m2[0][0] = 2;
+    
+    TDynamicMatrix<int> res = m1 + m2;
+    EXPECT_EQ(res[0][0], 3);
+}
+
+TEST(DynamicMatrix, MatrixSubtraction)
+{
+    TDynamicMatrix<int> m1(3), m2(3);
+    m1[0][0] = 10; m2[0][0] = 3;
+
+    TDynamicMatrix<int> res = m1 - m2;
+    EXPECT_EQ(res[0][0], 7);
+}
+
+TEST(DynamicMatrix, CantAddDifferentSizes)
+{
+    TDynamicMatrix<int> m1(2), m2(3);
+    ASSERT_ANY_THROW(m1 + m2);
 }

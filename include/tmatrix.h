@@ -1,284 +1,317 @@
-#ifndef TMATRIX_H
-#define TMATRIX_H
+#ifndef __TDynamicMatrix_H__
+#define __TDynamicMatrix_H__
 
 #include <iostream>
-#include <stdexcept>
-#include <algorithm>
 #include <cassert>
-#include <cstddef>
+#include <algorithm>
+#include <stdexcept>
 
-using std::size_t;
-using std::istream;
-using std::ostream;
-using std::runtime_error;
-using std::length_error;
-using std::out_of_range;
+using namespace std;
 
-const int MAX_VECTOR_SIZE = 100000000;
-const int MAX_MATRIX_SIZE = 10000;
+const int MAX_VECTOR_LEN = 100000000;
+const int MAX_MATRIX_LEN = 10000;
 
 template<typename T>
-class TDynamicVector {
+class TDynamicVector
+{
 protected:
-    size_t sz;
-    T* pMem;
+    size_t size;
+    T* pData;
+
 public:
-    explicit TDynamicVector(size_t size = 1) : sz(size), pMem(nullptr) {
-        if (sz == 0)
-            throw out_of_range("Vector size should be greater than zero");
-        if (sz > static_cast<size_t>(MAX_VECTOR_SIZE))
-            throw out_of_range("Vector size too large");
-        pMem = new T[sz]();
+    TDynamicVector(size_t _size = 1) : size(_size)
+    {
+        if (size == 0)
+            throw out_of_range("Vector size must be greater than 0");
+        if (size > MAX_VECTOR_LEN)
+            throw out_of_range("Vector size is too large");
+        
+        pData = new T[size]();
     }
 
-    TDynamicVector(T* arr, size_t s) : sz(s), pMem(nullptr) {
-        if (arr == nullptr) throw std::invalid_argument("arr is null");
-        if (sz == 0)
-            throw out_of_range("Vector size should be greater than zero");
-        if (sz > static_cast<size_t>(MAX_VECTOR_SIZE))
-            throw out_of_range("Vector size too large");
-        pMem = new T[sz];
-        std::copy(arr, arr + sz, pMem);
+    TDynamicVector(T* arr, size_t _size) : size(_size)
+    {
+        assert(arr != nullptr && "Source array cannot be null");
+        if (size == 0)
+            throw out_of_range("Vector size must be greater than 0");
+        if (size > MAX_VECTOR_LEN)
+            throw out_of_range("Vector size is too large");
+
+        pData = new T[size];
+        std::copy(arr, arr + size, pData);
     }
 
-    TDynamicVector(const TDynamicVector& v) : sz(v.sz), pMem(nullptr) {
-        pMem = new T[sz]();
-        for (size_t i = 0; i < sz; ++i) pMem[i] = v.pMem[i];
+    TDynamicVector(const TDynamicVector& v) : size(v.size)
+    {
+        pData = new T[size];
+        std::copy(v.pData, v.pData + size, pData);
     }
 
-    TDynamicVector(TDynamicVector&& v) noexcept : sz(v.sz), pMem(v.pMem) {
-        v.pMem = nullptr;
-        v.sz = 0;
+    TDynamicVector(TDynamicVector&& v) noexcept : size(0), pData(nullptr)
+    {
+        std::swap(size, v.size);
+        std::swap(pData, v.pData);
     }
 
-    ~TDynamicVector() { delete[] pMem; }
+    ~TDynamicVector()
+    {
+        delete[] pData;
+        pData = nullptr;
+    }
 
-    TDynamicVector& operator=(const TDynamicVector& v) {
+    TDynamicVector& operator=(const TDynamicVector& v)
+    {
         if (this == &v) return *this;
-        T* newmem = nullptr;
-        if (v.sz > 0) {
-            newmem = new T[v.sz];
-            for (size_t i = 0; i < v.sz; ++i) newmem[i] = v.pMem[i];
+
+        if (size != v.size) 
+        {
+            T* newData = new T[v.size];
+            delete[] pData;
+            pData = newData;
+            size = v.size;
         }
-        delete[] pMem;
-        pMem = newmem;
-        sz = v.sz;
+        std::copy(v.pData, v.pData + size, pData);
+        
         return *this;
     }
 
-    TDynamicVector& operator=(TDynamicVector&& v) noexcept {
+    TDynamicVector& operator=(TDynamicVector&& v) noexcept
+    {
         if (this == &v) return *this;
-        delete[] pMem;
-        pMem = v.pMem;
-        sz = v.sz;
-        v.pMem = nullptr;
-        v.sz = 0;
+
+        delete[] pData;
+        pData = nullptr;
+        size = 0;
+
+        std::swap(size, v.size);
+        std::swap(pData, v.pData);
+
         return *this;
     }
 
-    size_t size() const noexcept { return sz; }
+    size_t length() const noexcept { return size; }
 
-    T& operator[](int ind) {
-        if (ind < 0 || static_cast<size_t>(ind) >= sz) throw out_of_range("Index out of range");
-        return pMem[ind];
-    }
-    const T& operator[](int ind) const {
-        if (ind < 0 || static_cast<size_t>(ind) >= sz) throw out_of_range("Index out of range");
-        return pMem[ind];
+    T& operator[](size_t ind)
+    {
+        return pData[ind];
     }
 
-    T& at(size_t ind) {
-        if (ind >= sz) throw out_of_range("Index out of range");
-        return pMem[ind];
-    }
-    const T& at(size_t ind) const {
-        if (ind >= sz) throw out_of_range("Index out of range");
-        return pMem[ind];
+    const T& operator[](size_t ind) const
+    {
+        return pData[ind];
     }
 
-    bool operator==(const TDynamicVector& v) const noexcept {
-        if (sz != v.sz) return false;
-        for (size_t i = 0; i < sz; ++i)
-            if (!(pMem[i] == v.pMem[i])) return false;
+    T& at(size_t ind)
+    {
+        if (ind >= size) throw out_of_range("Index is out of range");
+        return pData[ind];
+    }
+
+    const T& at(size_t ind) const
+    {
+        if (ind >= size) throw out_of_range("Index is out of range");
+        return pData[ind];
+    }
+
+    bool operator==(const TDynamicVector& v) const noexcept
+    {
+        if (size != v.size) return false;
+        for (size_t i = 0; i < size; ++i) 
+        {
+            if (pData[i] != v.pData[i]) return false;
+        }
         return true;
     }
 
-    bool operator!=(const TDynamicVector& v) const noexcept {
+    bool operator!=(const TDynamicVector& v) const noexcept
+    {
         return !(*this == v);
     }
 
-    TDynamicVector operator+(const T& val) const {
-        TDynamicVector tmp(*this);
-        for (size_t i = 0; i < sz; ++i) tmp.pMem[i] += val;
-        return tmp;
-    }
-    TDynamicVector operator-(const T& val) const {
-        TDynamicVector tmp(*this);
-        for (size_t i = 0; i < sz; ++i) tmp.pMem[i] -= val;
-        return tmp;
-    }
-    TDynamicVector operator*(const T& val) const {
-        TDynamicVector tmp(*this);
-        for (size_t i = 0; i < sz; ++i) tmp.pMem[i] *= val;
-        return tmp;
-    }
-
-    TDynamicVector operator+(const TDynamicVector& v) const {
-        if (sz != v.sz) throw runtime_error("lengths are not equal");
+    TDynamicVector operator+(T val)
+    {
         TDynamicVector res(*this);
-        for (size_t i = 0; i < sz; ++i) res.pMem[i] += v.pMem[i];
-        return res;
-    }
-    TDynamicVector operator-(const TDynamicVector& v) const {
-        if (sz != v.sz) throw runtime_error("lengths are not equal");
-        TDynamicVector res(*this);
-        for (size_t i = 0; i < sz; ++i) res.pMem[i] -= v.pMem[i];
+        for (size_t i = 0; i < size; ++i) res.pData[i] += val;
         return res;
     }
 
-    T operator*(const TDynamicVector& v) const {
-        if (sz != v.sz) throw runtime_error("lengths are not equal");
-        T acc = T();
-        for (size_t i = 0; i < sz; ++i) acc += pMem[i] * v.pMem[i];
-        return acc;
+    TDynamicVector operator-(T val)
+    {
+        TDynamicVector res(*this);
+        for (size_t i = 0; i < size; ++i) res.pData[i] -= val;
+        return res;
     }
 
-    friend void swap(TDynamicVector& lhs, TDynamicVector& rhs) noexcept {
-        std::swap(lhs.sz, rhs.sz);
-        std::swap(lhs.pMem, rhs.pMem);
+    TDynamicVector operator*(T val)
+    {
+        TDynamicVector res(*this);
+        for (size_t i = 0; i < size; ++i) res.pData[i] *= val;
+        return res;
     }
 
-    friend istream& operator>>(istream& istr, TDynamicVector& v) {
-        for (size_t i = 0; i < v.sz; ++i) istr >> v.pMem[i];
+    TDynamicVector operator+(const TDynamicVector& v)
+    {
+        if (size != v.size) throw length_error("Vector lengths mismatch");
+        
+        TDynamicVector res(size);
+        for (size_t i = 0; i < size; ++i) 
+            res.pData[i] = pData[i] + v.pData[i];
+        
+        return res;
+    }
+
+    TDynamicVector operator-(const TDynamicVector& v)
+    {
+        if (size != v.size) throw length_error("Vector lengths mismatch");
+
+        TDynamicVector res(size);
+        for (size_t i = 0; i < size; ++i)
+            res.pData[i] = pData[i] - v.pData[i];
+
+        return res;
+    }
+
+    T operator*(const TDynamicVector& v)
+    {
+        if (size != v.size) throw length_error("Vector lengths mismatch");
+
+        T dotProduct = T();
+        for (size_t i = 0; i < size; ++i)
+            dotProduct += pData[i] * v.pData[i];
+        
+        return dotProduct;
+    }
+
+    friend void swap(TDynamicVector& lhs, TDynamicVector& rhs) noexcept
+    {
+        std::swap(lhs.size, rhs.size);
+        std::swap(lhs.pData, rhs.pData);
+    }
+
+    friend istream& operator>>(istream& istr, TDynamicVector& v)
+    {
+        for (size_t i = 0; i < v.size; ++i) istr >> v.pData[i];
         return istr;
     }
-    friend ostream& operator<<(ostream& ostr, const TDynamicVector& v) {
-        for (size_t i = 0; i < v.sz; ++i) {
-            if (i) ostr << ' ';
-            ostr << v.pMem[i];
-        }
+
+    friend ostream& operator<<(ostream& ostr, const TDynamicVector& v)
+    {
+        for (size_t i = 0; i < v.size; ++i) ostr << v.pData[i] << ' ';
         return ostr;
     }
 };
 
 template<typename T>
-class TDynamicMatrix : private TDynamicVector<TDynamicVector<T>> {
-private:
-    using base_t = TDynamicVector<TDynamicVector<T>>;
-    using base_t::pMem;
-    using base_t::sz;
+class TDynamicMatrix : private TDynamicVector<TDynamicVector<T>>
+{
+    using Base = TDynamicVector<TDynamicVector<T>>;
+    using Base::pData;
+    using Base::size;
+
 public:
-    explicit TDynamicMatrix(size_t s = 1) : base_t(s) {
-        if (sz == 0) throw out_of_range("Matrix size must be > 0");
-        if (sz > static_cast<size_t>(MAX_MATRIX_SIZE)) throw out_of_range("Matrix size too large");
-        for (size_t i = 0; i < sz; ++i) {
-            pMem[i] = TDynamicVector<T>(sz);
+    TDynamicMatrix(size_t s = 1) : Base(s)
+    {
+        if (size > MAX_MATRIX_LEN)
+            throw out_of_range("Matrix size exceeds maximum limit");
+        
+        for (size_t i = 0; i < size; ++i)
+            pData[i] = TDynamicVector<T>(size);
+    }
+
+    using Base::operator[];
+    size_t get_size() const { return size; } 
+
+    bool operator==(const TDynamicMatrix& m) const noexcept
+    {
+        return Base::operator==(m);
+    }
+
+    bool operator!=(const TDynamicMatrix& m) const noexcept
+    {
+        return !(*this == m);
+    }
+
+    TDynamicMatrix<T> operator*(const T& val)
+    {
+        TDynamicMatrix<T> res(size);
+        for (size_t i = 0; i < size; ++i)
+        {
+            res[i] = pData[i] * val;
         }
-    }
-
-    TDynamicMatrix(const TDynamicMatrix& m) : base_t(m.sz) {
-        for (size_t i = 0; i < sz; ++i) pMem[i] = m.pMem[i];
-    }
-
-    TDynamicMatrix(TDynamicMatrix&& m) noexcept : base_t(std::move(m)) {}
-
-    TDynamicMatrix& operator=(const TDynamicMatrix& m) {
-        if (this == &m) return *this;
-        base_t::operator=(m);
-        for (size_t i = 0; i < sz; ++i) {
-            if (pMem[i].size() != m.pMem[i].size()) pMem[i] = m.pMem[i];
-        }
-        return *this;
-    }
-
-    TDynamicMatrix& operator=(TDynamicMatrix&& m) noexcept {
-        base_t::operator=(std::move(m));
-        return *this;
-    }
-
-    TDynamicVector<T>& operator[](size_t ind) {
-        if (ind >= sz) throw out_of_range("Row index out of range");
-        return pMem[ind];
-    }
-    const TDynamicVector<T>& operator[](size_t ind) const {
-        if (ind >= sz) throw out_of_range("Row index out of range");
-        return pMem[ind];
-    }
-
-    bool operator==(const TDynamicMatrix& m) const noexcept {
-        if (sz != m.size()) return false;
-        for (size_t i = 0; i < sz; ++i)
-            if (!(pMem[i] == m.pMem[i])) return false;
-        return true;
-    }
-    bool operator!=(const TDynamicMatrix& m) const noexcept { return !(*this == m); }
-
-    TDynamicMatrix operator*(const T& val) const {
-        TDynamicMatrix res(*this);
-        for (size_t i = 0; i < sz; ++i) res.pMem[i] = res.pMem[i] * val;
         return res;
     }
 
-    TDynamicVector<T> operator*(const TDynamicVector<T>& v) const {
-        if (v.size() != sz) throw length_error("dimensions mismatch");
-        TDynamicVector<T> result(sz);
-        for (size_t i = 0; i < sz; ++i) {
-            T acc = T();
-            for (size_t j = 0; j < sz; ++j) acc += pMem[i][static_cast<int>(j)] * v[static_cast<int>(j)];
-            result[static_cast<int>(i)] = acc;
+    TDynamicVector<T> operator*(const TDynamicVector<T>& v)
+    {
+        if (v.length() != size)
+            throw length_error("Vector and Matrix dimensions incompatible");
+
+        TDynamicVector<T> res(size);
+        for (size_t i = 0; i < size; ++i)
+        {
+            res[i] = pData[i] * v;
         }
-        return result;
-    }
-
-    TDynamicMatrix operator+(const TDynamicMatrix& m) const {
-        if (m.size() != sz) throw length_error("dimensions mismatch");
-        TDynamicMatrix res(sz);
-        for (size_t i = 0; i < sz; ++i) res.pMem[i] = pMem[i] + m.pMem[i];
         return res;
     }
 
-    TDynamicMatrix operator-(const TDynamicMatrix& m) const {
-        if (m.size() != sz) throw length_error("dimensions mismatch");
-        TDynamicMatrix res(sz);
-        for (size_t i = 0; i < sz; ++i) res.pMem[i] = pMem[i] - m.pMem[i];
+    TDynamicMatrix operator+(const TDynamicMatrix& m)
+    {
+        if (m.get_size() != size)
+            throw length_error("Matrix dimensions mismatch");
+
+        TDynamicMatrix<T> res(size);
+        for (size_t i = 0; i < size; ++i)
+        {
+            res[i] = pData[i] + m[i];
+        }
         return res;
     }
 
-    TDynamicMatrix operator*(const TDynamicMatrix& m) const {
-        if (m.size() != sz) throw length_error("dimensions mismatch");
-        TDynamicMatrix res(sz);
-        for (size_t i = 0; i < sz; ++i) {
-            for (size_t j = 0; j < sz; ++j) {
+    TDynamicMatrix operator-(const TDynamicMatrix& m)
+    {
+        if (m.get_size() != size)
+            throw length_error("Matrix dimensions mismatch");
+
+        TDynamicMatrix<T> res(size);
+        for (size_t i = 0; i < size; ++i)
+        {
+            res[i] = pData[i] - m[i];
+        }
+        return res;
+    }
+
+    TDynamicMatrix operator*(const TDynamicMatrix& m)
+    {
+        if (m.get_size() != size)
+            throw length_error("Matrix dimensions mismatch for multiplication");
+
+        TDynamicMatrix<T> res(size);
+        for (size_t i = 0; i < size; ++i) 
+        {
+            for (size_t j = 0; j < size; ++j) 
+            {
                 T sum = T();
-                for (size_t k = 0; k < sz; ++k) {
-                    sum += pMem[i][static_cast<int>(k)] * m.pMem[k][j];
+                for (size_t k = 0; k < size; ++k) 
+                {
+                    sum += pData[i][k] * m[k][j];
                 }
-                res.pMem[i][j] = sum;
+                res[i][j] = sum;
             }
         }
         return res;
     }
 
-    friend istream& operator>>(istream& istr, TDynamicMatrix& v) {
-        for (size_t i = 0; i < v.sz; ++i)
-            for (size_t j = 0; j < v.sz; ++j)
-                istr >> v.pMem[i][j];
+    friend istream& operator>>(istream& istr, TDynamicMatrix& m)
+    {
+        for (size_t i = 0; i < m.size; ++i) istr >> m.pData[i];
         return istr;
     }
 
-    friend ostream& operator<<(ostream& ostr, const TDynamicMatrix& v) {
-        for (size_t i = 0; i < v.sz; ++i) {
-            for (size_t j = 0; j < v.sz; ++j) {
-                if (j) ostr << ' ';
-                ostr << v.pMem[i][j];
-            }
-            if (i + 1 < v.sz) ostr << '\n';
-        }
+    friend ostream& operator<<(ostream& ostr, const TDynamicMatrix& m)
+    {
+        for (size_t i = 0; i < m.size; ++i) ostr << m.pData[i] << endl;
         return ostr;
     }
-
-    size_t size() const noexcept { return sz; }
-    int get_size() const noexcept { return static_cast<int>(sz); }
 };
 
 #endif

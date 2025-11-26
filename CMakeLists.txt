@@ -1,12 +1,8 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 2.8)
 
-project(MatrixLab VERSION 1.0 LANGUAGES CXX)
+include_directories(include gtest)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-include_directories(include)
-
-add_subdirectory(gtest)
+# BUILD
 add_subdirectory(samples)
 add_subdirectory(test)
+add_subdirectory(gtest)
